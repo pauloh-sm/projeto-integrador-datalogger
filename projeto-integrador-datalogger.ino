@@ -46,7 +46,7 @@ void pinConfigure() {
 
 void loggerFuelSensor(File dataLogger) {
   byte fuelSensorState = digitalRead(pinFuelSensor);
-  String fuelSensorData = getDateTimeNow()+String(FuelSensor)+";"+String(fuelSensorState);
+  String fuelSensorData = getDateTimeNow()+";"+String(FuelSensor)+";"+String(fuelSensorState);
   dataLogger.println(fuelSensorData);
 }
 
