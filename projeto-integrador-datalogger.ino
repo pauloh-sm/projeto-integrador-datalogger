@@ -3,29 +3,35 @@
 #include <DS1307.h>
 
 #define pinChipSelectSD 4
-#define pinFuelSensor 5
+
+File dataLogger;
 
 enum sensorType {
-  FuelSensor = 1
+  FuelSensor = 1,
+  Speedometer = 2,
+  Temperature = 3
 } sensorsType;
 
 DS1307 rtc(A4, A5);
 
 void setup() {
-  pinConfigure();
+  startConfigure();
   sdConfigure();
   rtcConfigure();
 }
 
 void loop() {
-  File dataLogger = fileOpen();
+  dataLogger = fileOpen();
   
   if (dataLogger) {
-    loggerFuelSensor(dataLogger);
-    fileClose(dataLogger);
+    String dataRead = serialRead();
+
+    if(dataRead.length() > 0){
+      readData(dataRead);
+    }    
   }
 
-  delay(5000);
+  fileClose(dataLogger);
 }
 
 void rtcConfigure() {
@@ -40,14 +46,19 @@ void sdConfigure() {
   }
 }
 
-void pinConfigure() {
-  pinMode(pinFuelSensor, INPUT_PULLUP);
+void startConfigure() {
+  Serial.begin(9600);
 }
 
-void loggerFuelSensor(File dataLogger) {
-  byte fuelSensorState = digitalRead(pinFuelSensor);
-  String fuelSensorData = getDateTimeNow()+";"+String(FuelSensor)+";"+String(fuelSensorState);
+void loggerFuelSensor(String dataFuel) {
+  String fuelSensorData = getDateTimeNow()+";"+dataFuel;
   dataLogger.println(fuelSensorData);
+}
+
+void loggerSpeedometerSensor(File dataLogger) {
+//  byte fuelSpeedometerState = digitalRead(pinSpeedometerSensor);
+//  String fuelSensorData = getDateTimeNow()+";"+String(Speedometer)+";"+String(fuelSensorState);
+//  dataLogger.println(fuelSensorData);
 }
 
 File fileOpen() {
@@ -60,4 +71,19 @@ void fileClose(File dataLogger) {
 
 String getDateTimeNow() {
   return String(rtc.getDateStr(FORMAT_SHORT))+"T"+String(rtc.getTimeStr());
+}
+
+String serialRead() {
+  String incomingData = "";
+  if (Serial.available() > 0) {
+    incomingData = Serial.readString();    
+  }
+
+  return incomingData;
+}
+
+void readData(String data){
+  if(data[0] == (char)FuelSensor){
+    loggerFuelSensor(data);
+  }
 }
